@@ -243,6 +243,71 @@ export class IeeeAdapter implements SiteAdapter {
   }
 
   /**
+   * Extract publication year from entry element
+   * IEEE Xplore typically shows year in various formats:
+   * - In publication date elements
+   * - In the description/metadata text
+   * - In conference/journal name (e.g., "CVPR 2024")
+   */
+  private extractYearFromEntry(element: HTMLElement): string | null {
+    // Try to find year in dedicated date/year elements
+    const dateSelectors = [
+      '.publisher-info-container .date',
+      '.description .date',
+      '.publish-date',
+      '.publication-year',
+      '[class*="date"]',
+      'time',
+    ]
+
+    for (const selector of dateSelectors) {
+      const dateElement = element.querySelector(selector)
+      if (dateElement) {
+        const text = dateElement.textContent || ''
+        const yearMatch = text.match(/\b(19|20)\d{2}\b/)
+        if (yearMatch) {
+          return yearMatch[0]
+        }
+      }
+    }
+
+    // Try to extract from description/stats section
+    const descElement = element.querySelector('.description, .stats-document-abstract-publishedIn, .doc-abstract-pubinfo')
+    if (descElement) {
+      const text = descElement.textContent || ''
+      const yearMatch = text.match(/\b(19|20)\d{2}\b/)
+      if (yearMatch) {
+        return yearMatch[0]
+      }
+    }
+
+    // Try to extract from publication title (often contains year)
+    const pubTitleElement = element.querySelector('.publication-title, .description a[href*="/xpl/conhome"]')
+    if (pubTitleElement) {
+      const text = pubTitleElement.textContent || ''
+      const yearMatch = text.match(/\b(19|20)\d{2}\b/)
+      if (yearMatch) {
+        return yearMatch[0]
+      }
+    }
+
+    // For document pages, try to get from the URL or meta tags
+    if (element.classList.contains('document-main') || element.tagName.toLowerCase() === 'xpl-document-details') {
+      // Try meta tags
+      const metaYear = document.querySelector('meta[name="citation_publication_date"], meta[name="citation_date"]')
+      if (metaYear) {
+        const content = metaYear.getAttribute('content') || ''
+        const yearMatch = content.match(/\b(19|20)\d{2}\b/)
+        if (yearMatch) {
+          return yearMatch[0]
+        }
+      }
+    }
+
+    return null
+  }
+
+  /**
    * Get all papers currently visible on the page
    */
   getPapers(): PaperInfo[] {
@@ -358,12 +423,16 @@ export class IeeeAdapter implements SiteAdapter {
     const venue = this.extractVenueFromPublication(element)
     const venueSource: VenueSource = venue ? 'page' : 'unknown'
 
+    // Extract year from the entry
+    const year = this.extractYearFromEntry(element)
+
     // Find insertion point (after title)
     const insertionPoint = titleElement?.parentElement as HTMLElement || element
 
     return {
       id,
       title,
+      year,
       venue,
       venueSource,
       element,
@@ -391,12 +460,16 @@ export class IeeeAdapter implements SiteAdapter {
     const venue = this.extractVenueFromPublication(element)
     const venueSource: VenueSource = venue ? 'page' : 'unknown'
 
+    // Extract year from the entry
+    const year = this.extractYearFromEntry(element)
+
     // Find insertion point
     const insertionPoint = titleElement as HTMLElement || element
 
     return {
       id,
       title,
+      year,
       venue,
       venueSource,
       element,
@@ -425,12 +498,16 @@ export class IeeeAdapter implements SiteAdapter {
     const venue = this.extractVenueFromPublication(element)
     const venueSource: VenueSource = venue ? 'page' : 'unknown'
 
+    // Extract year from the entry
+    const year = this.extractYearFromEntry(element)
+
     // Find insertion point (after title)
     const insertionPoint = titleElement as HTMLElement || element
 
     return {
       id,
       title,
+      year,
       venue,
       venueSource,
       element,
@@ -461,12 +538,16 @@ export class IeeeAdapter implements SiteAdapter {
     }
     const venueSource: VenueSource = venue ? 'page' : 'unknown'
 
+    // Extract year from the entry
+    const year = this.extractYearFromEntry(element)
+
     // Find insertion point
     const insertionPoint = titleElement as HTMLElement || element
 
     return {
       id,
       title,
+      year,
       venue,
       venueSource,
       element,

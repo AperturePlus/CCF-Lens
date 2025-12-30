@@ -60,6 +60,7 @@ function drainDblpQueue(): void {
     const task = dblpQueue.shift()
     if (!task) continue
 
+    const epochAtStart = processingEpoch
     dblpActiveCount++
     task()
       .catch(error => {
@@ -67,7 +68,11 @@ function drainDblpQueue(): void {
       })
       .finally(() => {
         dblpActiveCount--
-        drainDblpQueue()
+        // Only continue draining if epoch hasn't changed (not cancelled)
+        // Use setTimeout to avoid potential stack overflow with many tasks
+        if (epochAtStart === processingEpoch && dblpQueue.length > 0) {
+          setTimeout(drainDblpQueue, 0)
+        }
       })
   }
 }

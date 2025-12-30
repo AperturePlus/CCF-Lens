@@ -109,6 +109,55 @@ export class DblpAdapter implements SiteAdapter {
   }
 
   /**
+   * Extract publication year from entry element
+   * DBLP typically shows year in various formats:
+   * - In the year span element
+   * - In the venue link URL (e.g., /db/conf/cvpr/cvpr2024.html)
+   * - In the cite text
+   */
+  private extractYearFromEntry(element: HTMLElement): string | null {
+    // Try to find year in dedicated year element
+    const yearElement = element.querySelector('.year, [itemprop="datePublished"], time')
+    if (yearElement) {
+      const yearText = yearElement.textContent?.trim()
+      if (yearText && /^(19|20)\d{2}$/.test(yearText)) {
+        return yearText
+      }
+    }
+
+    // Try to extract year from venue link URL
+    const venueLinks = element.querySelectorAll('a[href*="/db/conf/"], a[href*="/db/journals/"]')
+    for (const link of venueLinks) {
+      const href = link.getAttribute('href') || ''
+      const yearMatch = href.match(/(19|20)\d{2}/)
+      if (yearMatch) {
+        return yearMatch[0]
+      }
+    }
+
+    // Try to extract from cite text
+    const citeElement = element.querySelector('cite')
+    if (citeElement) {
+      const text = citeElement.textContent || ''
+      const yearMatch = text.match(/\b(19|20)\d{2}\b/)
+      if (yearMatch) {
+        return yearMatch[0]
+      }
+    }
+
+    // Try to extract from data-key attribute (often contains year)
+    const dataKey = element.getAttribute('data-key')
+    if (dataKey) {
+      const yearMatch = dataKey.match(/(19|20)\d{2}/)
+      if (yearMatch) {
+        return yearMatch[0]
+      }
+    }
+
+    return null
+  }
+
+  /**
    * Get all papers currently visible on the page
    */
   getPapers(): PaperInfo[] {
@@ -189,12 +238,16 @@ export class DblpAdapter implements SiteAdapter {
     const venue = this.extractVenueFromLink(element)
     const venueSource: VenueSource = venue ? 'page' : 'unknown'
 
+    // Extract year from the entry
+    const year = this.extractYearFromEntry(element)
+
     // Find insertion point (after title)
     const insertionPoint = titleElement as HTMLElement || element
 
     return {
       id,
       title,
+      year,
       venue,
       venueSource,
       element,
@@ -221,12 +274,16 @@ export class DblpAdapter implements SiteAdapter {
     const venue = this.extractVenueFromLink(element)
     const venueSource: VenueSource = venue ? 'page' : 'unknown'
 
+    // Extract year from the entry
+    const year = this.extractYearFromEntry(element)
+
     // Find insertion point
     const insertionPoint = titleElement as HTMLElement || element
 
     return {
       id,
       title,
+      year,
       venue,
       venueSource,
       element,
@@ -260,12 +317,16 @@ export class DblpAdapter implements SiteAdapter {
 
     const venueSource: VenueSource = venue ? 'page' : 'unknown'
 
+    // Extract year from the entry
+    const year = this.extractYearFromEntry(element)
+
     // Find insertion point
     const insertionPoint = titleElement as HTMLElement || element
 
     return {
       id,
       title,
+      year,
       venue,
       venueSource,
       element,
