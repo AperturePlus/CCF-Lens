@@ -20,8 +20,12 @@ import type { MatchConfidence } from '../core/venue-matcher'
 export interface RankBadgeProps {
   /** CCF rank: A, B, C, or null for unknown */
   rank: 'A' | 'B' | 'C' | null
-  /** Venue name */
+  /** Venue short name (for badge display) */
   venue: string
+  /** Venue full name (for tooltip display) */
+  venueFull?: string
+  /** Publication year (best-effort) */
+  year?: string | null
   /** Source of venue information */
   venueSource: VenueSource
   /** Match confidence level */
@@ -36,11 +40,21 @@ export interface RankBadgeProps {
 
 const props = withDefaults(defineProps<RankBadgeProps>(), {
   dblpUrl: undefined,
+  venueFull: undefined,
+  year: undefined,
   loading: false,
   error: undefined,
 })
 
 const showTooltip = ref(false)
+
+const venueWithYear = computed(() => {
+  const venue = props.venue?.trim() ?? ''
+  const year = typeof props.year === 'string' ? props.year.trim() : ''
+
+  if (venue && year) return `${venue} ${year}`
+  return venue || year
+})
 
 /**
  * Badge text based on rank
@@ -48,8 +62,9 @@ const showTooltip = ref(false)
 const badgeText = computed(() => {
   if (props.loading) return '...'
   if (props.error) return '!'
-  if (props.rank) return `CCF-${props.rank}`
-  return props.venue || '未知'
+  const venueLabel = venueWithYear.value
+  if (props.rank) return venueLabel ? `CCF-${props.rank} ${venueLabel}` : `CCF-${props.rank}`
+  return venueLabel || '未知'
 })
 
 /**
@@ -108,8 +123,14 @@ const confidenceText = computed(() => {
         <template v-if="loading">正在查询...</template>
         <template v-else-if="error">错误: {{ error }}</template>
         <template v-else>
-          <span v-if="venue" class="rank-badge__tooltip-line">
-            <strong>Venue:</strong> {{ venue }}
+          <span v-if="venueFull || venue" class="rank-badge__tooltip-line">
+            <strong>Venue:</strong> {{ venueFull || venue }}
+          </span>
+          <span v-if="venueFull && venue && venueFull !== venue" class="rank-badge__tooltip-line">
+            <strong>简称:</strong> {{ venue }}
+          </span>
+          <span v-if="year" class="rank-badge__tooltip-line">
+            <strong>年份:</strong> {{ year }}
           </span>
           <span v-if="rank" class="rank-badge__tooltip-line">
             <strong>等级:</strong> CCF-{{ rank }}
@@ -202,6 +223,11 @@ const confidenceText = computed(() => {
 
 .rank-badge__text {
   display: inline-block;
+  min-width: 0;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Tooltip (Requirement 4.6) */

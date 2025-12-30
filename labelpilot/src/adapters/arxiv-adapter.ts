@@ -121,6 +121,33 @@ export class ArxivAdapter implements SiteAdapter {
   }
 
   /**
+   * Best-effort year extraction from comments text.
+   * Supports "2024", "CVPR2024", and "CVPR'24" patterns.
+   */
+  private parseYearFromText(text: string): string | null {
+    const input = text?.trim()
+    if (!input) return null
+
+    // 4-digit year, allow adjacency like "CVPR2024"
+    const fullYearMatch = input.match(/(?:^|[^\d])((?:19|20)\d{2})(?!\d)/)
+    if (fullYearMatch?.[1]) {
+      return fullYearMatch[1]
+    }
+
+    // 2-digit year with apostrophe, e.g., "CVPR'24"
+    const shortYearMatch = input.match(/'(\d{2})(?!\d)/)
+    if (shortYearMatch?.[1]) {
+      const yy = Number.parseInt(shortYearMatch[1], 10)
+      if (Number.isFinite(yy)) {
+        const century = yy <= 50 ? 2000 : 1900
+        return String(century + yy)
+      }
+    }
+
+    return null
+  }
+
+  /**
    * Heuristic validation to avoid extracting random text as a venue.
    */
   private isLikelyVenue(venue: string): boolean {
@@ -245,6 +272,7 @@ export class ArxivAdapter implements SiteAdapter {
     const comments = (commentsContent?.textContent ?? '')
       .replace(/^\s*Comments:\s*/i, '')
       .trim()
+    const year = this.parseYearFromText(comments)
     
     // Parse venue from comments
     const venue = this.parseVenueFromComments(comments)
@@ -256,6 +284,7 @@ export class ArxivAdapter implements SiteAdapter {
     return {
       id,
       title,
+      year,
       venue,
       venueSource,
       element,
@@ -289,6 +318,7 @@ export class ArxivAdapter implements SiteAdapter {
     // Extract comments
     const commentsElement = ddElement.querySelector('.list-comments')
     const comments = commentsElement?.textContent?.replace(/^Comments:\s*/i, '').trim() || ''
+    const year = this.parseYearFromText(comments)
     
     // Parse venue from comments
     const venue = this.parseVenueFromComments(comments)
@@ -300,6 +330,7 @@ export class ArxivAdapter implements SiteAdapter {
     return {
       id,
       title,
+      year,
       venue,
       venueSource,
       element: ddElement,
@@ -325,6 +356,7 @@ export class ArxivAdapter implements SiteAdapter {
     // Extract comments
     const commentsElement = document.querySelector('.comments')
     const comments = commentsElement?.textContent?.replace(/^Comments:\s*/i, '').trim() || ''
+    const year = this.parseYearFromText(comments)
     
     // Parse venue from comments
     const venue = this.parseVenueFromComments(comments)
@@ -336,6 +368,7 @@ export class ArxivAdapter implements SiteAdapter {
     return {
       id,
       title,
+      year,
       venue,
       venueSource,
       element: metaElement,

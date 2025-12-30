@@ -22,6 +22,8 @@ export interface PaperInfo {
   id: string
   /** Paper title */
   title: string
+  /** Publication year (best-effort), null if not found */
+  year?: string | null
   /** Extracted venue name, null if not found */
   venue: string | null
   /** Source of the venue information */

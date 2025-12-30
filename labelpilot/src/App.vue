@@ -155,9 +155,16 @@ function mountBadge(paper: ProcessedPaperInfo): void {
   // Create Vue app for badge
   const badgeApp = createApp({
     render() {
+      const entry = paper.matchResult.entry
+      const venueShort = entry?.abbr || paper.venue || paper.matchResult.cleanedVenue || '未知'
+      const venueFull = entry?.name || paper.venue || paper.matchResult.cleanedVenue || '未知'
+      const year = paper.year || undefined
+
       return h(RankBadge, {
         rank: paper.matchResult.entry?.rank || null,
-        venue: paper.venue || paper.matchResult.cleanedVenue || '未知',
+        venue: venueShort,
+        venueFull,
+        year,
         venueSource: paper.venueSource,
         confidence: paper.matchResult.confidence as MatchConfidence,
         loading: false,
