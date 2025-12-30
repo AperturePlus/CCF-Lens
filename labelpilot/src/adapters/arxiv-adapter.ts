@@ -239,8 +239,12 @@ export class ArxivAdapter implements SiteAdapter {
     }
 
     // Extract comments (venue source)
-    const commentsElement = element.querySelector('p.comments span')
-    const comments = commentsElement?.textContent?.trim() || ''
+    const commentsContainer = element.querySelector('p.comments')
+    const commentsContent =
+      commentsContainer?.querySelector('span.has-text-grey-dark') ?? commentsContainer
+    const comments = (commentsContent?.textContent ?? '')
+      .replace(/^\s*Comments:\s*/i, '')
+      .trim()
     
     // Parse venue from comments
     const venue = this.parseVenueFromComments(comments)

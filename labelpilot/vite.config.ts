@@ -19,9 +19,9 @@ export default defineConfig({
         // 多站点匹配规则 - Requirements 1.1, 1.2, 1.3
         match: [
           // arXiv - Requirements 1.1
-          'https://arxiv.org/search/*',
-          'https://arxiv.org/list/*',
-          'https://arxiv.org/abs/*',
+          '*://arxiv.org/search*',
+          '*://arxiv.org/list*',
+          '*://arxiv.org/abs/*',
           // DBLP - Requirements 1.2
           'https://dblp.org/search*',
           'https://dblp.org/db/*',

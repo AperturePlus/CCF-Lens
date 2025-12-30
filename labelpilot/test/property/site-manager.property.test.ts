@@ -48,22 +48,6 @@ function createMockAdapter(papers: PaperInfo[]): SiteAdapter {
 }
 
 /**
- * Arbitrary for generating paper IDs
- */
-const paperIdArb = fc.stringOf(
-  fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz0123456789'),
-  { minLength: 1, maxLength: 10 }
-).filter(s => s.trim().length > 0)
-
-/**
- * Arbitrary for generating venue names
- */
-const venueArb = fc.option(
-  fc.constantFrom('CVPR', 'NeurIPS', 'ICML', 'ICLR', 'AAAI', 'IJCAI', 'ACL', 'EMNLP', 'Unknown'),
-  { nil: null }
-)
-
-/**
  * Generate a list of papers with unique IDs
  * Each call creates fresh DOM elements
  */
