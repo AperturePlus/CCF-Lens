@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { DblpService, DblpResult, DBLP_TIMEOUT } from '../../src/services/dblp-service'
+import { DblpService, DBLP_TIMEOUT } from '../../src/services/dblp-service'
 import { CacheManager } from '../../src/core/cache-manager'
 import { clearGMStorage } from '../setup'
 

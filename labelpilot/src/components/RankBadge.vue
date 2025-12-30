@@ -88,32 +88,6 @@ const confidenceText = computed(() => {
   }
   return confidenceMap[props.confidence] || '未知'
 })
-
-/**
- * Tooltip content
- */
-const tooltipContent = computed(() => {
-  if (props.loading) return '正在查询...'
-  if (props.error) return `错误: ${props.error}`
-  
-  const lines: string[] = []
-  
-  if (props.venue) {
-    lines.push(`Venue: ${props.venue}`)
-  }
-  
-  if (props.rank) {
-    lines.push(`等级: CCF-${props.rank}`)
-  }
-  
-  lines.push(`来源: ${sourceText.value}`)
-  
-  if (props.confidence !== 'none') {
-    lines.push(`匹配: ${confidenceText.value}`)
-  }
-  
-  return lines.join('\n')
-})
 </script>
 
 <template>

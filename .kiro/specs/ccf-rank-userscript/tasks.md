@@ -183,14 +183,14 @@
     - 实现悬浮按钮显示设置入口
     - _Requirements: 5.1_
 
-- [-] 14. 实现主应用入口
-  - [ ] 14.1 实现 App.vue
+- [x] 14. 实现主应用入口
+  - [x] 14.1 实现 App.vue
     - 创建 src/App.vue
     - 集成所有组件
     - 实现组件间通信
     - _Requirements: 全部_
 
-  - [ ] 14.2 实现 main.ts
+  - [x] 14.2 实现 main.ts
     - 创建 src/main.ts
     - 初始化 Vue 应用
     - 初始化 SiteManager
@@ -198,13 +198,13 @@
     - 设置全局错误处理
     - _Requirements: 8.3, 8.4, 8.5_
 
-- [ ] 15. 实现处理幂等性
-  - [ ] 15.1 添加已处理标记
+- [x] 15. 实现处理幂等性
+  - [x] 15.1 添加已处理标记
     - 在 SiteManager 中维护已处理元素集合
     - 在处理前检查是否已处理
     - _Requirements: 6.3_
 
-  - [ ] 15.2 编写处理幂等性属性测试
+  - [x] 15.2 编写处理幂等性属性测试
     - **Property 5: 处理幂等性**
     - **Validates: Requirements 6.3**
 

@@ -11,8 +11,8 @@
  * - 5.4: Allow user to select badge display position
  */
 
-import { computed, ref, watch, onMounted } from 'vue'
-import { getSettingsStore, type Settings, type BadgePosition } from '../stores/settings-store'
+import { ref, watch, onMounted } from 'vue'
+import { getSettingsStore, type BadgePosition } from '../stores/settings-store'
 
 const emit = defineEmits<{
   (e: 'close'): void

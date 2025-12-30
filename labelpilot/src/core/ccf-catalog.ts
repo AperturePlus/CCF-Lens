@@ -54,11 +54,19 @@ export class CCFCatalog {
         aliases: entry.aliases || []
       }
 
-      // Store by abbreviation as primary key
-      this.entries.set(ccfEntry.abbr.toLowerCase(), ccfEntry)
+      const abbrKey = ccfEntry.abbr.toLowerCase().trim()
 
-      // Build lookup index for all possible keys
-      this.addToLookupIndex(ccfEntry.abbr, ccfEntry)
+      // Store by abbreviation as primary key.
+      // Some abbreviations collide in the source data (e.g., TAC/FSE).
+      // Resolve collisions deterministically (prefer higher rank).
+      const existingPrimary = this.entries.get(abbrKey)
+      if (!existingPrimary || this.isPreferredPrimary(ccfEntry, existingPrimary)) {
+        this.entries.set(abbrKey, ccfEntry)
+        // Abbreviation lookups should always point at the selected primary entry.
+        this.lookupIndex.set(abbrKey, ccfEntry)
+      }
+
+      // Build lookup index for all possible keys (case-insensitive)
       this.addToLookupIndex(ccfEntry.name, ccfEntry)
 
       // Add all aliases to lookup index
@@ -66,6 +74,15 @@ export class CCFCatalog {
         this.addToLookupIndex(alias, ccfEntry)
       }
     }
+  }
+
+  /**
+   * Decide which entry should be treated as the primary one for a colliding abbreviation.
+   * Preference order: A > B > C, otherwise keep existing (stable).
+   */
+  private isPreferredPrimary(candidate: CCFEntry, existing: CCFEntry): boolean {
+    const rankScore: Record<CCFEntry['rank'], number> = { A: 3, B: 2, C: 1 }
+    return rankScore[candidate.rank] > rankScore[existing.rank]
   }
 
   /**

@@ -2,11 +2,13 @@
  * SiteManager Unit Tests
  * 
  * Tests for adapter registration, site detection, and paper processing.
- * Requirements: 1.5 - Extensible plugin mechanism
+ * Requirements: 
+ * - 1.5 - Extensible plugin mechanism
+ * - 6.3 - Avoid duplicate processing (idempotency)
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { SiteManager } from '../../src/adapters/site-manager'
+import { SiteManager, PROCESSED_MARKER } from '../../src/adapters/site-manager'
 import type { SiteAdapter, PaperInfo } from '../../src/adapters/types'
 
 /**
@@ -168,6 +170,38 @@ describe('SiteManager', () => {
       expect(finalSize).toBe(initialSize)
     })
 
+    it('should skip papers with DOM marker even if not in memory', () => {
+      const paper = createMockPaper('paper1', 'CVPR')
+      // Pre-mark the element as processed
+      paper.element.setAttribute(PROCESSED_MARKER, 'true')
+      
+      const adapter = createMockAdapter('test', [/test\.com/], [paper])
+      
+      manager.registerAdapter(adapter)
+      manager['currentAdapter'] = adapter
+      
+      const results = manager.processCurrentPage()
+      
+      // Paper should be skipped because DOM marker exists
+      expect(results.size).toBe(0)
+    })
+
+    it('should not add DOM marker until marked as processed', () => {
+      const papers = [createMockPaper('paper1', 'CVPR')]
+      const adapter = createMockAdapter('test', [/test\.com/], papers)
+      
+      manager.registerAdapter(adapter)
+      manager['currentAdapter'] = adapter
+      
+      manager.processCurrentPage()
+      
+      // Processing extracts/matches but does not mark the DOM as processed
+      expect(papers[0].element.hasAttribute(PROCESSED_MARKER)).toBe(false)
+
+      manager.markAsProcessed('paper1')
+      expect(papers[0].element.hasAttribute(PROCESSED_MARKER)).toBe(true)
+    })
+
     it('should return empty map if no adapter is set', () => {
       const results = manager.processCurrentPage()
       expect(results.size).toBe(0)
@@ -182,12 +216,71 @@ describe('SiteManager', () => {
       manager.registerAdapter(adapter)
       manager['currentAdapter'] = adapter
       manager.processCurrentPage()
-      
+
+      manager.markAsProcessed('paper1')
       expect(manager.isProcessed('paper1')).toBe(true)
     })
 
     it('should return false for unprocessed papers', () => {
       expect(manager.isProcessed('unknown')).toBe(false)
+    })
+
+    it('should return true when element has DOM marker', () => {
+      const element = document.createElement('div')
+      element.setAttribute(PROCESSED_MARKER, 'true')
+      
+      expect(manager.isProcessed('paper1', element)).toBe(true)
+    })
+
+    it('should sync in-memory set when DOM marker is found', () => {
+      const element = document.createElement('div')
+      element.setAttribute(PROCESSED_MARKER, 'true')
+      
+      // First call should find DOM marker and sync
+      expect(manager.isProcessed('paper1', element)).toBe(true)
+      // Second call should find in memory
+      expect(manager.isProcessed('paper1')).toBe(true)
+    })
+  })
+
+  describe('hasElementBeenProcessed', () => {
+    it('should return true when paper ID is in memory', () => {
+      const element = document.createElement('div')
+      manager['processedElements'].add('paper1')
+      
+      expect(manager.hasElementBeenProcessed('paper1', element)).toBe(true)
+    })
+
+    it('should return true when element has DOM marker', () => {
+      const element = document.createElement('div')
+      element.setAttribute(PROCESSED_MARKER, 'true')
+      
+      expect(manager.hasElementBeenProcessed('paper1', element)).toBe(true)
+    })
+
+    it('should return false when neither memory nor DOM has marker', () => {
+      const element = document.createElement('div')
+      
+      expect(manager.hasElementBeenProcessed('paper1', element)).toBe(false)
+    })
+  })
+
+  describe('markElementAsProcessed', () => {
+    it('should add paper ID to memory set', () => {
+      const element = document.createElement('div')
+      
+      manager.markElementAsProcessed('paper1', element)
+      
+      expect(manager['processedElements'].has('paper1')).toBe(true)
+    })
+
+    it('should add DOM marker to element', () => {
+      const element = document.createElement('div')
+      
+      manager.markElementAsProcessed('paper1', element)
+      
+      expect(element.hasAttribute(PROCESSED_MARKER)).toBe(true)
+      expect(element.getAttribute(PROCESSED_MARKER)).toBe('true')
     })
   })
 
@@ -219,6 +312,7 @@ describe('SiteManager', () => {
       manager.registerAdapter(adapter)
       manager['currentAdapter'] = adapter
       manager.processCurrentPage()
+      manager.markAsProcessed('paper1')
       
       expect(manager.getResults().size).toBe(1)
       
@@ -226,6 +320,41 @@ describe('SiteManager', () => {
       
       expect(manager.getResults().size).toBe(0)
       expect(manager.isProcessed('paper1')).toBe(false)
+    })
+
+    it('should clear DOM markers when clearDomMarkers is true', () => {
+      const papers = [createMockPaper('paper1', 'CVPR')]
+      const adapter = createMockAdapter('test', [/test\.com/], papers)
+      
+      manager.registerAdapter(adapter)
+      manager['currentAdapter'] = adapter
+      manager.processCurrentPage()
+      manager.markAsProcessed('paper1')
+      
+      const paper = manager.getResults().get('paper1')
+      expect(paper?.element.hasAttribute(PROCESSED_MARKER)).toBe(true)
+      
+      manager.reset(true)
+      
+      expect(paper?.element.hasAttribute(PROCESSED_MARKER)).toBe(false)
+    })
+
+    it('should keep DOM markers when clearDomMarkers is false', () => {
+      const papers = [createMockPaper('paper1', 'CVPR')]
+      const adapter = createMockAdapter('test', [/test\.com/], papers)
+      
+      manager.registerAdapter(adapter)
+      manager['currentAdapter'] = adapter
+      manager.processCurrentPage()
+      manager.markAsProcessed('paper1')
+      
+      const paper = manager.getResults().get('paper1')
+      const element = paper?.element
+      
+      manager.reset(false)
+      
+      // Element still has marker even though memory is cleared
+      expect(element?.hasAttribute(PROCESSED_MARKER)).toBe(true)
     })
   })
 

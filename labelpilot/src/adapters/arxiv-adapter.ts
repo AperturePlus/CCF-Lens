@@ -11,6 +11,7 @@
  */
 
 import type { SiteAdapter, PaperInfo, VenueSource } from './types'
+import { getCCFCatalog } from '../core/ccf-catalog'
 
 /**
  * Common venue patterns found in arXiv comments
@@ -29,12 +30,8 @@ const VENUE_PATTERNS: Array<{ pattern: RegExp; group: number }> = [
   { pattern: /(?:to\s+)?appear(?:s|ing)?\s+(?:in|at)\s+([A-Z][A-Za-z0-9\s\-&]+?)(?:\s+\d{4}|\s*$|[,.])/i, group: 1 },
   // "Presented at VENUE"
   { pattern: /presented\s+(?:at|in)\s+([A-Z][A-Za-z0-9\s\-&]+?)(?:\s+\d{4}|\s*$|[,.])/i, group: 1 },
-  // "VENUE 2024" at the start (common pattern)
-  { pattern: /^([A-Z]{2,}(?:\s*[-']?\s*[A-Z]+)?)\s*(?:'?\d{2,4})?(?:\s|,|$)/i, group: 1 },
   // "IEEE/ACM VENUE" pattern
   { pattern: /(?:IEEE|ACM)\s+([A-Z][A-Za-z0-9\s\-&]+?)(?:\s+\d{4}|\s*$|[,.])/i, group: 1 },
-  // Conference abbreviation in parentheses: "(CVPR 2024)"
-  { pattern: /\(([A-Z]{2,}(?:\s*[-']?\s*[A-Z]+)?)\s*(?:'?\d{2,4})?\)/i, group: 1 },
 ]
 
 /**
@@ -103,7 +100,7 @@ export class ArxivAdapter implements SiteAdapter {
         if (venue.length >= 2 && !/^\d+$/.test(venue)) {
           // Clean up the venue name
           const cleaned = this.cleanExtractedVenue(venue)
-          if (cleaned) {
+          if (cleaned && this.isLikelyVenue(cleaned)) {
             return cleaned
           }
         }
@@ -113,14 +110,37 @@ export class ArxivAdapter implements SiteAdapter {
     // Fallback: look for known venue abbreviations anywhere in the text
     const upperComments = comments.toUpperCase()
     for (const venue of KNOWN_VENUES) {
-      // Check for word boundary match
-      const pattern = new RegExp(`\\b${venue}\\b`, 'i')
+      // Check for matches like "CVPR", "CVPR 2024", "CVPR2024", "CVPR'24"
+      const pattern = new RegExp(`\\b${venue}(?:'?\\d{2,4})?\\b`, 'i')
       if (pattern.test(upperComments)) {
         return venue
       }
     }
 
     return null
+  }
+
+  /**
+   * Heuristic validation to avoid extracting random text as a venue.
+   */
+  private isLikelyVenue(venue: string): boolean {
+    const trimmed = venue.trim()
+    if (trimmed.length < 2) return false
+
+    const upper = trimmed.toUpperCase()
+    if (KNOWN_VENUES.has(upper)) return true
+
+    // If the venue is in the CCF catalog (abbr/name/alias), it's valid.
+    const catalog = getCCFCatalog()
+    if (catalog.has(trimmed)) return true
+
+    // Otherwise, accept only if it looks like a full venue name.
+    // This avoids false positives like "aaaaaaaaaa" or "submitted to something".
+    const hasVenueKeywords =
+      /\b(conference|conf\.?|symposium|workshop|journal|transactions|trans\.?|proceedings|letters|review)\b/i.test(trimmed)
+    const hasMultipleWords = trimmed.split(/\s+/).filter(Boolean).length >= 2
+
+    return hasVenueKeywords && hasMultipleWords
   }
 
   /**

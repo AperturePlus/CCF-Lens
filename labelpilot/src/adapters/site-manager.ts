@@ -5,7 +5,9 @@
  * academic websites. Handles adapter registration, site detection, and
  * maintains processing state.
  * 
- * Requirements: 1.5 - Support extensible plugin mechanism for new academic sites
+ * Requirements: 
+ * - 1.5 - Support extensible plugin mechanism for new academic sites
+ * - 6.3 - Avoid duplicate processing of papers that already have RankBadge
  */
 
 import type { 
@@ -14,6 +16,9 @@ import type {
   ProcessedPaperInfo 
 } from './types'
 import { getVenueMatcher, type MatchResult } from '../core/venue-matcher'
+
+/** Data attribute name used to mark processed elements */
+export const PROCESSED_MARKER = 'data-ccf-rank-processed'
 
 /**
  * SiteManager class for managing site adapters and coordinating paper processing
@@ -141,7 +146,45 @@ export class SiteManager {
   }
 
   /**
+   * Check if a DOM element has already been processed
+   * Uses both in-memory set and DOM attribute for robustness
+   * 
+   * @param paperId - The paper ID to check
+   * @param element - The DOM element to check
+   * @returns true if the element has been processed
+   */
+  hasElementBeenProcessed(paperId: string, element: HTMLElement): boolean {
+    // Check in-memory set first (fast path)
+    if (this.processedElements.has(paperId)) {
+      return true
+    }
+    
+    // Check DOM attribute (handles page reload or multiple script instances)
+    if (element.hasAttribute(PROCESSED_MARKER)) {
+      // Sync with in-memory set
+      this.processedElements.add(paperId)
+      return true
+    }
+    
+    return false
+  }
+
+  /**
+   * Mark a DOM element as processed by adding a data attribute
+   * This ensures idempotency even across script reloads
+   * 
+   * @param paperId - The paper ID
+   * @param element - The DOM element to mark
+   */
+  markElementAsProcessed(paperId: string, element: HTMLElement): void {
+    this.processedElements.add(paperId)
+    element.setAttribute(PROCESSED_MARKER, 'true')
+  }
+
+  /**
    * Process all papers on the current page
+   * Implements idempotency to avoid duplicate processing (Requirement 6.3)
+   * 
    * @returns Map of paper IDs to processed paper info
    */
   processCurrentPage(): Map<string, ProcessedPaperInfo> {
@@ -154,8 +197,13 @@ export class SiteManager {
     const matcher = getVenueMatcher()
 
     for (const paper of papers) {
-      // Skip if already processed (idempotency - Requirement 6.3)
-      if (this.processedElements.has(paper.id)) {
+      // Skip if we've already extracted/matched this paper in the current run
+      if (this.processedPapers.has(paper.id)) {
+        continue
+      }
+
+      // Skip if badge already exists (idempotency across script instances)
+      if (this.hasElementBeenProcessed(paper.id, paper.element)) {
         continue
       }
 
@@ -177,7 +225,6 @@ export class SiteManager {
       }
 
       this.processedPapers.set(paper.id, processedPaper)
-      this.processedElements.add(paper.id)
     }
 
     return this.processedPapers
@@ -185,22 +232,48 @@ export class SiteManager {
 
   /**
    * Mark a paper as processed (badge added)
+   * Updates both in-memory state and DOM attribute
+   * 
    * @param paperId - The paper ID to mark
    */
   markAsProcessed(paperId: string): void {
     const paper = this.processedPapers.get(paperId)
     if (paper) {
       paper.processed = true
+      // Ensure DOM element is also marked (idempotent)
+      if (paper.element && !paper.element.hasAttribute(PROCESSED_MARKER)) {
+        this.markElementAsProcessed(paperId, paper.element)
+      } else {
+        this.processedElements.add(paperId)
+      }
+    } else {
+      // Still track in memory to avoid duplicate work
+      this.processedElements.add(paperId)
     }
   }
 
   /**
    * Check if a paper has been processed
+   * Checks both in-memory set and optionally the DOM element
+   * 
    * @param paperId - The paper ID to check
+   * @param element - Optional DOM element to check for marker
    * @returns true if the paper has been processed
    */
-  isProcessed(paperId: string): boolean {
-    return this.processedElements.has(paperId)
+  isProcessed(paperId: string, element?: HTMLElement): boolean {
+    // Check in-memory set
+    if (this.processedElements.has(paperId)) {
+      return true
+    }
+    
+    // If element provided, also check DOM attribute
+    if (element && element.hasAttribute(PROCESSED_MARKER)) {
+      // Sync with in-memory set
+      this.processedElements.add(paperId)
+      return true
+    }
+    
+    return false
   }
 
   /**
@@ -272,8 +345,19 @@ export class SiteManager {
 
   /**
    * Clear all processed papers and reset state
+   * Optionally removes DOM markers from elements
+   * 
+   * @param clearDomMarkers - Whether to remove DOM markers (default: false)
    */
-  reset(): void {
+  reset(clearDomMarkers: boolean = false): void {
+    if (clearDomMarkers) {
+      // Remove DOM markers from all processed elements
+      for (const paper of this.processedPapers.values()) {
+        if (paper.element) {
+          paper.element.removeAttribute(PROCESSED_MARKER)
+        }
+      }
+    }
     this.processedPapers.clear()
     this.processedElements.clear()
   }

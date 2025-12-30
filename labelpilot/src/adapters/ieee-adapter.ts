@@ -185,7 +185,9 @@ export class IeeeAdapter implements SiteAdapter {
 
     // Check partial matches
     for (const [key, value] of Object.entries(IEEE_VENUE_MAPPINGS)) {
-      if (lowerName.includes(key) || key.includes(lowerName)) {
+      // Only match when the page text contains a known key.
+      // Avoid reverse substring matches (e.g., "ieee" matching everything).
+      if (lowerName.includes(key)) {
         return value
       }
     }
