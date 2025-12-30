@@ -249,7 +249,7 @@ export class IeeeAdapter implements SiteAdapter {
     const papers: PaperInfo[] = []
     
     // Search results page: xpl-results-item elements
-    const searchResults = document.querySelectorAll('xpl-results-item, .List-results-items')
+    const searchResults = document.querySelectorAll('xpl-results-item')
     if (searchResults.length > 0) {
       searchResults.forEach((element, index) => {
         const paper = this.processSearchResultItem(element as HTMLElement, index)
@@ -258,6 +258,25 @@ export class IeeeAdapter implements SiteAdapter {
         }
       })
       return papers
+    }
+
+    // Search results container: List-results-items (process child items)
+    const listContainers = document.querySelectorAll('.List-results-items')
+    if (listContainers.length > 0) {
+      listContainers.forEach((container) => {
+        const items = container.querySelectorAll('xpl-results-item, .result-item, .document-result')
+        items.forEach((element, index) => {
+          const paper = element.tagName.toLowerCase() === 'xpl-results-item'
+            ? this.processSearchResultItem(element as HTMLElement, index)
+            : this.processResultItem(element as HTMLElement, index)
+          if (paper) {
+            papers.push(paper)
+          }
+        })
+      })
+      if (papers.length > 0) {
+        return papers
+      }
     }
 
     // Alternative search results structure

@@ -39,7 +39,7 @@ interface DblpApiResponse {
   result: {
     hits: {
       '@total': string
-      hit?: DblpHit[]
+      hit?: DblpHit[] | DblpHit
     }
   }
 }
@@ -214,9 +214,10 @@ export class DblpService {
    * Parse DBLP API response and find the best matching paper
    */
   private parseResponse(data: DblpApiResponse, searchTitle: string): DblpResult {
-    const hits = data.result?.hits?.hit
-    
-    if (!hits || hits.length === 0) {
+    const rawHits = data.result?.hits?.hit
+    const hits = Array.isArray(rawHits) ? rawHits : rawHits ? [rawHits] : []
+
+    if (hits.length === 0) {
       return {
         found: false,
         venue: null,
