@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # 当推送 v 开头的 tag 时触发，如 v1.0.0
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run tests
+        run: npm test
+      
+      - name: Build userscript
+        run: npm run build
+      
+      - name: Get version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: LabelPilot v${{ steps.get_version.outputs.VERSION }}
+          body: |
+            ## LabelPilot v${{ steps.get_version.outputs.VERSION }}
+            
+            ### 安装方式
+            
+            1. 安装油猴插件 [Tampermonkey](https://www.tampermonkey.net/) 或 [Violentmonkey](https://violentmonkey.github.io/)
+            2. 点击下方 `labelpilot.user.js` 文件进行安装
+            
+            ### 支持的网站
+            - arXiv (arxiv.org)
+            - DBLP (dblp.org)
+            - IEEE Xplore (ieeexplore.ieee.org)
+            
+            ### 功能
+            - 在论文列表页面显示 CCF 等级徽章
+            - 支持 A/B/C 等级分类
+            - 自动匹配会议/期刊名称
+          files: |
+            dist/*.user.js
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
