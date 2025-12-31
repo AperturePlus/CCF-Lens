@@ -10,11 +10,11 @@ export default defineConfig({
     monkey({
       entry: 'src/main.ts',
       userscript: {
-        name: 'LabelPilot - CCF Rank Display',
-        namespace: 'https://github.com/labelpilot',
+        name: 'CCF-Lens',
+        namespace: 'https://github.com/AperturePlus/ccf-lens',
         version: '1.0.0',
-        description: 'Display CCF rank for papers on arXiv, DBLP, and IEEE Xplore',
-        author: 'LabelPilot Team',
+        description: 'Display CCF rank badges for papers on arXiv, DBLP, and IEEE Xplore',
+        author: 'AperturePlus',
         icon: 'https://www.ccf.org.cn/favicon.ico',
         // 多站点匹配规则 - Requirements 1.1, 1.2, 1.3
         match: [

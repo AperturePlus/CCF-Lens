@@ -1,9 +1,9 @@
 {
-  "name": "labelpilot",
+  "name": "ccf-lens",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "CCF等级显示油猴脚本 - 支持arXiv、DBLP、IEEE Xplore",
+  "description": "CCF-Lens - 在 arXiv、DBLP、IEEE Xplore 显示 CCF 等级徽章",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",

@@ -1,11 +1,59 @@
-# Vue 3 + TypeScript + Vite
+# CCF-Lens 🔍
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+[![CI](https://github.com/AperturePlus/Labelpilot/actions/workflows/ci.yml/badge.svg)](https://github.com/AperturePlus/Labelpilot/actions/workflows/ci.yml)
+[![Release](https://github.com/AperturePlus/Labelpilot/actions/workflows/release.yml/badge.svg)](https://github.com/AperturePlus/Labelpilot/releases)
 
-## Recommended IDE Setup
+> 在 arXiv、DBLP、IEEE Xplore 等学术网站上显示 CCF 等级徽章的油猴脚本
 
-- [VS Code](https://code.visualstudio.com/) + [Vue - Official](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+## ✨ 功能特性
 
-## Type Support For `.vue` Imports in TS
+- 🏷️ **CCF 等级徽章** - 自动在论文标题旁显示 A/B/C 等级
+- 🌐 **多站点支持** - 支持 arXiv、DBLP、IEEE Xplore
+- 🔍 **智能匹配** - 自动识别会议/期刊名称
+- ⚡ **高性能** - 结果缓存，避免重复查询
+- 🎨 **美观徽章** - 不同等级使用不同颜色
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Vue - Official](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+## 📦 安装
+
+### 前置要求
+
+安装以下任一油猴扩展：
+- [Tampermonkey](https://www.tampermonkey.net/) (推荐)
+- [Violentmonkey](https://violentmonkey.github.io/)
+
+### 安装脚本
+
+从 [Releases](https://github.com/AperturePlus/Labelpilot/releases) 页面下载最新的 `ccf-lens.user.js` 文件并安装。
+
+## 🌐 支持的网站
+
+| 网站 | 支持页面 |
+|------|----------|
+| **arXiv** | 搜索页、列表页、摘要页 |
+| **DBLP** | 搜索页、数据库页、作者页 |
+| **IEEE Xplore** | 搜索页、作者页、文档页 |
+
+## 🛠️ 开发
+
+```bash
+# 安装依赖
+npm install
+
+# 开发模式
+npm run dev
+
+# 运行测试
+npm test
+
+# 构建
+npm run build
+```
+
+## 📝 License
+
+MIT License
+
+## 🙏 致谢
+
+- [CCF 推荐国际学术会议和期刊目录](https://www.ccf.org.cn/Academic_Evaluation/By_category/)
+- [vite-plugin-monkey](https://github.com/lisonge/vite-plugin-monkey)

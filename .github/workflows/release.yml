@@ -12,6 +12,10 @@ jobs:
   release:
     runs-on: ubuntu-latest
     
+    defaults:
+      run:
+        working-directory: labelpilot
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -21,6 +25,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          cache-dependency-path: labelpilot/package-lock.json
       
       - name: Install dependencies
         run: npm ci
@@ -38,14 +43,14 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          name: LabelPilot v${{ steps.get_version.outputs.VERSION }}
+          name: CCF-Lens v${{ steps.get_version.outputs.VERSION }}
           body: |
-            ## LabelPilot v${{ steps.get_version.outputs.VERSION }}
+            ## CCF-Lens v${{ steps.get_version.outputs.VERSION }}
             
             ### 安装方式
             
             1. 安装油猴插件 [Tampermonkey](https://www.tampermonkey.net/) 或 [Violentmonkey](https://violentmonkey.github.io/)
-            2. 点击下方 `labelpilot.user.js` 文件进行安装
+            2. 点击下方 `ccf-lens.user.js` 文件进行安装
             
             ### 支持的网站
             - arXiv (arxiv.org)
@@ -57,7 +62,7 @@ jobs:
             - 支持 A/B/C 等级分类
             - 自动匹配会议/期刊名称
           files: |
-            dist/*.user.js
+            labelpilot/dist/ccf-lens.user.js
           draft: false
           prerelease: false
         env:

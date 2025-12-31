@@ -10,6 +10,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     
+    defaults:
+      run:
+        working-directory: labelpilot
+    
     strategy:
       matrix:
         node-version: [18, 20, 22]
@@ -23,6 +27,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
+          cache-dependency-path: labelpilot/package-lock.json
       
       - name: Install dependencies
         run: npm ci
@@ -36,6 +41,10 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     
+    defaults:
+      run:
+        working-directory: labelpilot
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -45,6 +54,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          cache-dependency-path: labelpilot/package-lock.json
       
       - name: Install dependencies
         run: npm ci
