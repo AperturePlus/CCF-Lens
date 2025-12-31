@@ -12,7 +12,7 @@ jobs:
     
     defaults:
       run:
-        working-directory: labelpilot
+        working-directory: ccf-lens
     
     strategy:
       matrix:
@@ -27,7 +27,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-          cache-dependency-path: labelpilot/package-lock.json
+          cache-dependency-path: ccf-lens/package-lock.json
       
       - name: Install dependencies
         run: npm ci
@@ -43,7 +43,7 @@ jobs:
     
     defaults:
       run:
-        working-directory: labelpilot
+        working-directory: ccf-lens
     
     steps:
       - name: Checkout code
@@ -54,7 +54,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: labelpilot/package-lock.json
+          cache-dependency-path: ccf-lens/package-lock.json
       
       - name: Install dependencies
         run: npm ci
