@@ -58,6 +58,7 @@ describe('SettingsStore Property Tests', () => {
       arxiv: fc.boolean(),
       dblp: fc.boolean(),
       ieee: fc.boolean(),
+      'google-scholar': fc.boolean(),
     })
 
     // Arbitrary for generating complete settings
@@ -123,7 +124,7 @@ describe('SettingsStore Property Tests', () => {
     it('should persist individual site enable settings correctly', async () => {
       await fc.assert(
         fc.asyncProperty(
-          fc.constantFrom('arxiv', 'dblp', 'ieee') as fc.Arbitrary<'arxiv' | 'dblp' | 'ieee'>,
+          fc.constantFrom('arxiv', 'dblp', 'ieee', 'google-scholar') as fc.Arbitrary<'arxiv' | 'dblp' | 'ieee' | 'google-scholar'>,
           fc.boolean(),
           async (site, enabled) => {
             settingsStore.setSiteEnabled(site, enabled)
@@ -212,6 +213,7 @@ describe('SettingsStore Property Tests', () => {
               arxiv: fc.boolean(),
               dblp: fc.boolean(),
               ieee: fc.boolean(),
+              'google-scholar': fc.boolean(),
             }),
             badgePosition: fc.constantFrom('after-title', 'after-authors', 'inline') as fc.Arbitrary<BadgePosition>,
             debugMode: fc.boolean(),
@@ -303,6 +305,7 @@ describe('SettingsStore Property Tests', () => {
               arxiv: fc.boolean(),
               dblp: fc.boolean(),
               ieee: fc.boolean(),
+              'google-scholar': fc.boolean(),
             }),
             badgePosition: fc.constantFrom('after-title', 'after-authors', 'inline') as fc.Arbitrary<BadgePosition>,
             debugMode: fc.boolean(),

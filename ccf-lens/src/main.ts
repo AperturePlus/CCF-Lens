@@ -16,6 +16,7 @@ import { getSiteManager } from './adapters/site-manager'
 import { createArxivAdapter } from './adapters/arxiv-adapter'
 import { createDblpAdapter } from './adapters/dblp-adapter'
 import { createIeeeAdapter } from './adapters/ieee-adapter'
+import { createGoogleScholarAdapter } from './adapters/google-scholar-adapter'
 import { getSettingsStore } from './stores/settings-store'
 
 // Script identification for logging
@@ -82,6 +83,7 @@ function registerAdapters(): void {
   siteManager.registerAdapterFactory('arxiv', createArxivAdapter)
   siteManager.registerAdapterFactory('dblp', createDblpAdapter)
   siteManager.registerAdapterFactory('ieee', createIeeeAdapter)
+  siteManager.registerAdapterFactory('google-scholar', createGoogleScholarAdapter)
   
   debugLog('Site adapters registered:', siteManager.getRegisteredSiteIds())
 }

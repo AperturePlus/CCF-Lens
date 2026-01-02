@@ -188,5 +188,12 @@ export function getCCFCatalog(): CCFCatalog {
   return catalogInstance
 }
 
+/**
+ * Reset the singleton instance (for testing)
+ */
+export function resetCCFCatalog(): void {
+  catalogInstance = null
+}
+
 // Default export for convenience
 export default getCCFCatalog

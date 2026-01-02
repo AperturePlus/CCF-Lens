@@ -33,6 +33,19 @@ export default defineConfig({
           'https://ieeexplore.ieee.org/search/*',
           'https://ieeexplore.ieee.org/author/*',
           'https://ieeexplore.ieee.org/document/*',
+          // Google Scholar - Requirements 1.1, 1.2 (google-scholar-integration)
+          '*://scholar.google.com/scholar*',
+          '*://scholar.google.com/citations*',
+          '*://scholar.google.com.hk/scholar*',
+          '*://scholar.google.com.hk/citations*',
+          // Google Scholar Proxy Sites (for testing)
+          '*://scholar.lanfanshu.cn/scholar*',
+          '*://scholar.lanfanshu.cn/citations*',
+        ],
+        include: [
+          // Match other Google Scholar regional domains like scholar.google.co.uk / scholar.google.com.sg, etc.
+          /^https?:\/\/scholar\.google\.[^/]+\/scholar/,
+          /^https?:\/\/scholar\.google\.[^/]+\/citations/,
         ],
         // GM API 权限 - Requirements 5.6
         grant: [
@@ -48,6 +61,9 @@ export default defineConfig({
         connect: [
           'dblp.org',
           'dblp.uni-trier.de',
+          'scholar.google.com',
+          'scholar.google.com.hk',
+          'scholar.lanfanshu.cn',
         ],
         // 在文档加载完成后运行
         'run-at': 'document-end',

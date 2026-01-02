@@ -276,4 +276,11 @@ export function getVenueMatcher(): VenueMatcher {
   return matcherInstance
 }
 
+/**
+ * Reset the singleton instance (for testing)
+ */
+export function resetVenueMatcher(): void {
+  matcherInstance = null
+}
+
 export default getVenueMatcher

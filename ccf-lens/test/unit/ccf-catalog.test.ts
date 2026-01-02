@@ -5,14 +5,19 @@
  * Requirements: 3.1
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
-import { CCFCatalog, getCCFCatalog } from '../../src/core/ccf-catalog'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { CCFCatalog, getCCFCatalog, resetCCFCatalog } from '../../src/core/ccf-catalog'
 
 describe('CCFCatalog', () => {
   let catalog: CCFCatalog
 
   beforeEach(() => {
+    resetCCFCatalog()
     catalog = new CCFCatalog()
+  })
+
+  afterEach(() => {
+    resetCCFCatalog()
   })
 
   describe('Data Integrity', () => {

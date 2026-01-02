@@ -73,6 +73,46 @@ export class ArxivAdapter implements SiteAdapter {
   private observer: MutationObserver | null = null
   private observerCallback: (() => void) | null = null
 
+  private normalizeText(text: string): string {
+    return text.replace(/\s+/g, ' ').trim()
+  }
+
+  private extractSearchResultMetadata(element: HTMLElement): { comments: string; journalRef: string } {
+    let comments = ''
+    let journalRef = ''
+
+    const blocks = element.querySelectorAll('p.comments')
+    blocks.forEach((block) => {
+      const label = this.normalizeText(
+        block.querySelector('span.has-text-black-bis.has-text-weight-semibold')?.textContent ?? ''
+      )
+      if (!label) return
+
+      const labelKey = label.replace(/:$/, '').trim().toLowerCase()
+      const full = this.normalizeText(block.textContent ?? '')
+      let value = full
+      if (full.toLowerCase().startsWith(label.toLowerCase())) {
+        value = full.slice(label.length).trim()
+      }
+
+      if (/^comments?$/.test(labelKey)) {
+        comments = value
+      } else if (/^journal\s*-?\s*ref(?:erence)?$/.test(labelKey)) {
+        journalRef = value
+      }
+    })
+
+    // Fallbacks: keep previous behavior for Comments when labels are missing.
+    if (!comments) {
+      const commentsContainer = element.querySelector('p.comments')
+      const commentsContent =
+        commentsContainer?.querySelector('span.has-text-grey-dark') ?? commentsContainer
+      comments = this.normalizeText((commentsContent?.textContent ?? '').replace(/^\s*Comments:\s*/i, ''))
+    }
+
+    return { comments, journalRef }
+  }
+
   /**
    * Check if the adapter can handle the given URL
    */
@@ -265,18 +305,15 @@ export class ArxivAdapter implements SiteAdapter {
       return null
     }
 
-    // Extract comments (venue source)
-    const commentsContainer = element.querySelector('p.comments')
-    const commentsContent =
-      commentsContainer?.querySelector('span.has-text-grey-dark') ?? commentsContainer
-    const comments = (commentsContent?.textContent ?? '')
-      .replace(/^\s*Comments:\s*/i, '')
-      .trim()
-    const year = this.parseYearFromText(comments)
-    
-    // Parse venue from comments
-    const venue = this.parseVenueFromComments(comments)
-    const venueSource: VenueSource = venue ? 'comment' : 'unknown'
+    // Extract comments and journal reference metadata.
+    const { comments, journalRef } = this.extractSearchResultMetadata(element)
+
+    const year = this.parseYearFromText(comments) ?? this.parseYearFromText(journalRef)
+
+    // Parse venue from comments first, fallback to journal reference if available.
+    const venueFromComments = this.parseVenueFromComments(comments)
+    const venue = venueFromComments || (journalRef ? journalRef : null)
+    const venueSource: VenueSource = venueFromComments ? 'comment' : venue ? 'page' : 'unknown'
 
     // Find insertion point (after title)
     const insertionPoint = titleElement as HTMLElement || element
@@ -318,11 +355,18 @@ export class ArxivAdapter implements SiteAdapter {
     // Extract comments
     const commentsElement = ddElement.querySelector('.list-comments')
     const comments = commentsElement?.textContent?.replace(/^Comments:\s*/i, '').trim() || ''
-    const year = this.parseYearFromText(comments)
+
+    // Extract journal reference (published venue hint)
+    const journalRefElement = ddElement.querySelector('.list-journal-ref')
+    const journalRefRaw = journalRefElement?.textContent?.trim() || ''
+    const journalRef = journalRefRaw.replace(/^Journal-ref:\s*/i, '').trim()
+
+    const year = this.parseYearFromText(comments) ?? this.parseYearFromText(journalRef)
     
     // Parse venue from comments
-    const venue = this.parseVenueFromComments(comments)
-    const venueSource: VenueSource = venue ? 'comment' : 'unknown'
+    const venueFromComments = this.parseVenueFromComments(comments)
+    const venue = venueFromComments || (journalRef ? journalRef : null)
+    const venueSource: VenueSource = venueFromComments ? 'comment' : venue ? 'page' : 'unknown'
 
     // Find insertion point (after title in dd)
     const insertionPoint = titleElement as HTMLElement || ddElement
@@ -356,11 +400,17 @@ export class ArxivAdapter implements SiteAdapter {
     // Extract comments
     const commentsElement = document.querySelector('.comments')
     const comments = commentsElement?.textContent?.replace(/^Comments:\s*/i, '').trim() || ''
-    const year = this.parseYearFromText(comments)
+
+    // Extract journal reference if available
+    const journalRefElement = document.querySelector('td.tablecell.jref')
+    const journalRef = journalRefElement?.textContent?.trim() || ''
+
+    const year = this.parseYearFromText(comments) ?? this.parseYearFromText(journalRef)
     
     // Parse venue from comments
-    const venue = this.parseVenueFromComments(comments)
-    const venueSource: VenueSource = venue ? 'comment' : 'unknown'
+    const venueFromComments = this.parseVenueFromComments(comments)
+    const venue = venueFromComments || (journalRef ? journalRef : null)
+    const venueSource: VenueSource = venueFromComments ? 'comment' : venue ? 'page' : 'unknown'
 
     // Find insertion point (after title)
     const insertionPoint = titleElement as HTMLElement || metaElement

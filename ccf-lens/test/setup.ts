@@ -30,11 +30,12 @@ globalThis.GM_listValues = (): string[] => {
 }
 
 // Mock GM_xmlhttpRequest
+// 注意：onerror 回调接收的是 GMXMLHttpRequestErrorResponse 类型，而不是 Error
 globalThis.GM_xmlhttpRequest = (details: {
   method: string
   url: string
   onload?: (response: { responseText: string; status: number }) => void
-  onerror?: (error: Error) => void
+  onerror?: (response: { error?: string; status?: number; statusText?: string }) => void
   ontimeout?: () => void
   timeout?: number
 }) => {

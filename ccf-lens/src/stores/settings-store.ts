@@ -27,6 +27,7 @@ export interface SiteEnableSettings {
   arxiv: boolean
   dblp: boolean
   ieee: boolean
+  'google-scholar': boolean
 }
 
 /**
@@ -83,6 +84,7 @@ export const DEFAULT_SETTINGS: Settings = {
     arxiv: true,
     dblp: true,
     ieee: true,
+    'google-scholar': true,
   },
   badgePosition: 'after-title',
   debugMode: false,
@@ -136,6 +138,7 @@ function validateAndMigrateSettings(stored: unknown): Settings {
       arxiv: typeof settings.enabledSites?.arxiv === 'boolean' ? settings.enabledSites.arxiv : DEFAULT_SETTINGS.enabledSites.arxiv,
       dblp: typeof settings.enabledSites?.dblp === 'boolean' ? settings.enabledSites.dblp : DEFAULT_SETTINGS.enabledSites.dblp,
       ieee: typeof settings.enabledSites?.ieee === 'boolean' ? settings.enabledSites.ieee : DEFAULT_SETTINGS.enabledSites.ieee,
+      'google-scholar': typeof settings.enabledSites?.['google-scholar'] === 'boolean' ? settings.enabledSites['google-scholar'] : DEFAULT_SETTINGS.enabledSites['google-scholar'],
     },
     badgePosition: isValidBadgePosition(settings.badgePosition) ? settings.badgePosition : DEFAULT_SETTINGS.badgePosition,
     debugMode: typeof settings.debugMode === 'boolean' ? settings.debugMode : DEFAULT_SETTINGS.debugMode,

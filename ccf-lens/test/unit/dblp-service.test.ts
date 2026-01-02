@@ -35,6 +35,7 @@ function createMockDblpResponse(hits: Array<{
 }
 
 // Helper to mock GM_xmlhttpRequest
+// 注意：onerror 回调接收的是 GMXMLHttpRequestErrorResponse 类型，而不是 Error
 function mockGMXmlHttpRequest(
   response: object | null,
   options: {
@@ -42,16 +43,18 @@ function mockGMXmlHttpRequest(
     shouldError?: boolean
     shouldTimeout?: boolean
     delay?: number
+    errorMessage?: string
   } = {}
 ) {
-  const { status = 200, shouldError = false, shouldTimeout = false, delay = 0 } = options
+  const { status = 200, shouldError = false, shouldTimeout = false, delay = 0, errorMessage = 'Network error' } = options
 
   globalThis.GM_xmlhttpRequest = vi.fn((details) => {
     setTimeout(() => {
       if (shouldTimeout && details.ontimeout) {
         details.ontimeout()
       } else if (shouldError && details.onerror) {
-        details.onerror(new Error('Network error'))
+        // 传递 GMXMLHttpRequestErrorResponse 对象，而不是 Error
+        details.onerror({ error: errorMessage })
       } else if (details.onload) {
         details.onload({
           responseText: response ? JSON.stringify(response) : '',

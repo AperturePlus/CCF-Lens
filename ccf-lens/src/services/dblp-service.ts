@@ -200,8 +200,13 @@ export class DblpService {
             reject(new Error('Failed to parse DBLP response'))
           }
         },
-        onerror: (error) => {
-          reject(new Error(`Network error: ${error?.message || 'Unknown'}`))
+        onerror: (errorResponse) => {
+          // errorResponse 是 GMXMLHttpRequestErrorResponse 类型
+          // 包含 error, status, statusText 等字段
+          const errorMessage = errorResponse?.error 
+            || (errorResponse?.status ? `HTTP ${errorResponse.status}` : null)
+            || 'Unknown network error'
+          reject(new Error(`Network error: ${errorMessage}`))
         },
         ontimeout: () => {
           reject(new Error('Request timeout'))

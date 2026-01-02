@@ -32,6 +32,7 @@ const enabledSites = ref({
   arxiv: true,
   dblp: true,
   ieee: true,
+  'google-scholar': true,
 })
 
 const badgePosition = ref<BadgePosition>('after-title')
@@ -105,6 +106,7 @@ const siteOptions = [
   { key: 'arxiv', label: 'arXiv' },
   { key: 'dblp', label: 'DBLP' },
   { key: 'ieee', label: 'IEEE Xplore' },
+  { key: 'google-scholar', label: 'Google Scholar' },
 ] as const
 
 /**
