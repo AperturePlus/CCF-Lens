@@ -100,10 +100,6 @@ Please ensure your code passes all tests (`npm test`) and follows the existing c
 
 ---
 
-## 中文
-
-中文说明已迁移至 [`doc/README.zh-CN.md`](doc/README.zh-CN.md)。可通过页面顶部语言链接快速切换。
-
 ## 🙏 Acknowledgements
 
 - [CCF Recommended International Academic Conferences and Journals](https://www.ccf.org.cn/Academic_Evaluation/By_category/)
