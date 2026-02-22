@@ -7,7 +7,7 @@
 
 > A powerful userscript that automatically displays CCF rankings for academic venues directly on arXiv, DBLP, and IEEE Xplore
 
-[English](#english) | [中文](#中文)
+[English](README.md) | [中文](doc/README.zh-CN.md)
 
 ## English
 
@@ -99,10 +99,6 @@ Please ensure your code passes all tests (`npm test`) and follows the existing c
 - Questions: Check existing issues or start a new discussion
 
 ---
-
-## 中文
-
-中文说明已迁移至 [`doc/README.zh-CN.md`](doc/README.zh-CN.md)。
 
 ## 🙏 Acknowledgements
 

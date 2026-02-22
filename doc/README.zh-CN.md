@@ -1,6 +1,6 @@
 # CCF-Lens 中文文档
 
-[English README](../README.md)
+[English](../README.md) | [中文](README.zh-CN.md)
 
 ## CCF-Lens 是什么？
 
